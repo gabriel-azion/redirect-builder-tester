@@ -62,35 +62,42 @@ func main() {
 }
 
 func TestRedirects() {
-	jsonFile, err := os.Open("a.json")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer jsonFile.Close()
 
-	byteValue, _ := io.ReadAll(jsonFile)
+	filepaths := []string{"/Users/gabriel.franca/repos/docs/docs/cicd/azion-massive-redirect-ptbr.json", "/Users/gabriel.franca/repos/docs/docs/cicd/azion-massive-redirect-en.json"}
 
-	var redirects []Record
-	err = json.Unmarshal(byteValue, &redirects)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	for i := 0; i < len(redirects); i++ {
-		resp, err := http.Get(redirects[i].Moved)
+	for _, fpath := range filepaths {
+		jsonFile, err := os.Open(fpath)
 		if err != nil {
 			fmt.Println(err)
-			continue
+			return
+		}
+		defer jsonFile.Close()
+
+		byteValue, _ := io.ReadAll(jsonFile)
+
+		var redirects []Record
+		err = json.Unmarshal(byteValue, &redirects)
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
 
-		if resp.StatusCode == 404 {
-			fmt.Println(colorRed, "Link:", redirects[i].Moved)
-		} else {
-			fmt.Println(colorGreen, "Link:", redirects[i].Moved)
+		for i := 0; i < len(redirects); i++ {
+			resp, err := http.Get(redirects[i].Moved)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
 
+			if resp.StatusCode == 404 {
+				fmt.Println(colorRed, "Link:", redirects[i].Moved)
+			} //else {
+			//fmt.Println(colorGreen, "Link:", redirects[i].Moved)
+
+			//}
+			resp.Body.Close()
 		}
-		resp.Body.Close()
+
 	}
+
 }
